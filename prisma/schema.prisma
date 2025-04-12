@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Fuente de datos y cliente Prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+//
+// USUARIOS DEL SISTEMA
+//
+model User {
+  id       String   @id @default(cuid())
+  name     String
+  email    String   @unique
+  password String   // puedes usar hash si implementas login
+  role     Role     @default(CLIENTE) // Enum definido más abajo
+  reservas Reserva[]
+  createdAt DateTime @default(now())
+}
+
+//
+// ENUM DE ROLES
+//
+enum Role {
+  CLIENTE
+  ADMIN
+  PROVEEDOR
+}
+
+//
+// RESERVAS DE LOS SERVICIOS
+//
+model Reserva {
+  id           String     @id @default(cuid())
+  fecha        DateTime   // fecha y hora exacta combinada
+  estado       EstadoReserva @default(PENDIENTE)
+  servicioId   String
+  proveedorId  String?
+  userId       String
+  createdAt    DateTime   @default(now())
+
+  user         User       @relation(fields: [userId], references: [id])
+  servicio     Servicio   @relation(fields: [servicioId], references: [id])
+  proveedor    Proveedor? @relation(fields: [proveedorId], references: [id])
+  historial    HistorialReserva[]
+}
+
+//
+// ENUM PARA ESTADO DE RESERVA
+//
+enum EstadoReserva {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+  REPROGRAMADA
+}
+
+//
+// SERVICIOS OFRECIDOS
+//
+model Servicio {
+  id          String     @id @default(cuid())
+  nombre      String
+  descripcion String
+  duracion    Int        // duración en minutos
+  precio      Float
+  reservas    Reserva[]
+  disponibilidad Disponibilidad[]
+}
+
+//
+// PROVEEDORES / PERSONAL / RECURSOS
+//
+model Proveedor {
+  id          String     @id @default(cuid())
+  nombre      String
+  especialidad String
+  reservas    Reserva[]
+  horarios    HorarioDisponible[]
+}
+
+//
+// DISPONIBILIDAD DE UN SERVICIO POR FECHA Y HORA
+//
+model Disponibilidad {
+  id          String   @id @default(cuid())
+  fecha       DateTime // fecha y hora exacta disponible
+  servicioId  String
+  disponible  Boolean  @default(true)
+
+  servicio    Servicio @relation(fields: [servicioId], references: [id])
+}
+
+//
+// BLOQUES DE HORARIO DISPONIBLES DE UN PROVEEDOR (ej: lunes 8am-4pm)
+//
+model HorarioDisponible {
+  id          String   @id @default(cuid())
+  dia         String   // ejemplo: "lunes", "martes"
+  horaInicio  String   // ejemplo: "08:00"
+  horaFin     String   // ejemplo: "16:00"
+  proveedorId String
+
+  proveedor   Proveedor @relation(fields: [proveedorId], references: [id])
+}
+
+// HISTORIAL DE CAMBIOS EN LA RESERVA (bitácora)  
+model HistorialReserva {
+  id         String   @id @default(cuid())
+  reservaId  String
+  cambio     String
+  fecha      DateTime @default(now())
+
+  reserva    Reserva @relation(fields: [reservaId], references: [id])
+}
