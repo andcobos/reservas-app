@@ -6,16 +6,30 @@ export default function NuevaReserva() {
   const [servicios, setServicios] = useState<any[]>([])
   const [proveedores, setProveedores] = useState<any[]>([])
   const [mensaje, setMensaje] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+
   const [form, setForm] = useState({
     servicioId: '',
     proveedorId: '',
     fecha: '',
   })
 
-  // Simula un userId temporal (en producción esto viene del auth)
-  const userId = 'USER_ID_EJEMPLO' // <-- cambia esto por un ID real o dinámico
-
   useEffect(() => {
+    // Leer el userId desde la cookie reservas_session
+    const cookie = document.cookie
+      .split('; ')
+      .find((c) => c.startsWith('reservas_session='))
+
+    if (cookie) {
+      try {
+        const data = JSON.parse(decodeURIComponent(cookie.split('=')[1]))
+        setUserId(data.id)
+      } catch (e) {
+        console.warn('⚠️ Error leyendo la cookie de sesión', e)
+      }
+    }
+
+    // Cargar servicios y proveedores desde API
     const cargarDatos = async () => {
       const resServicios = await fetch('/api/servicios')
       const dataServicios = await resServicios.json()
@@ -36,6 +50,11 @@ export default function NuevaReserva() {
   const handleSubmit = async (e: any) => {
     e.preventDefault()
     setMensaje('')
+
+    if (!userId) {
+      setMensaje('⚠️ No hay sesión activa')
+      return
+    }
 
     const res = await fetch('/api/reservas', {
       method: 'POST',

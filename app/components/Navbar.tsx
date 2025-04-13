@@ -1,23 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import useUserRole from '../hooks/useUserRole'
 
 export default function Navbar() {
-  const [usuarioActivo, setUsuarioActivo] = useState(false)
   const router = useRouter()
-
-  // Simula si el usuario está logueado (ej: se guarda un token)
-  useEffect(() => {
-    const loggedIn = localStorage.getItem('loggedIn')
-    setUsuarioActivo(loggedIn === 'true')
-  }, [])
+  const { isAdmin, isProveedor, isLoggedIn } = useUserRole()
 
   const cerrarSesion = async () => {
-    await fetch('/api/logout', { method: 'POST' }) 
-    localStorage.removeItem('loggedIn')            
-    router.push('/iniciar_sesion')                 
+    await fetch('/api/logout', { method: 'POST' })
+    localStorage.removeItem('loggedIn') 
+    router.push('/iniciar_sesion')
   }
 
   return (
@@ -29,23 +23,32 @@ export default function Navbar() {
 
         <ul className="flex gap-4 text-sm">
           <li>
-            <Link href="/reservas/nueva" className="hover:underline">Nueva Reserva</Link>
+            <Link href="/reservas/nueva" className="hover:underline">
+              Nueva Reserva
+            </Link>
           </li>
-          <li>
-            <Link href="/proveedores" className="hover:underline">Proveedores</Link>
-          </li>
-          {!usuarioActivo ? (
-            <>
-              <li>
-                <Link href="/usuarios/nuevo" className="hover:underline">Registrarse</Link>
-              </li>
-              <li>
-                <Link href="/iniciar_sesion" className="hover:underline">Iniciar sesión</Link>
-              </li>
-            </>
-          ) : (
+
+          {isProveedor && (
             <li>
-              <button onClick={cerrarSesion}>Cerrar sesión</button>
+              <Link href="/proveedores" className="hover:underline">
+                Proveedores
+              </Link>
+            </li>
+          )}
+
+          {isAdmin && (
+            <li>
+              <Link href="/admin" className="hover:underline">
+                Panel Admin
+              </Link>
+            </li>
+          )}
+
+          {isLoggedIn && (
+            <li>
+              <button onClick={cerrarSesion} className="hover:underline">
+                Cerrar sesión
+              </button>
             </li>
           )}
         </ul>

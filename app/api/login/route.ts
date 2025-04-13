@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { cookies } from 'next/headers'
 
 export async function POST(req: Request) {
   const { identificador, password } = await req.json()
@@ -8,7 +7,7 @@ export async function POST(req: Request) {
   const user = await prisma.user.findFirst({
     where: {
       OR: [{ email: identificador }, { name: identificador }],
-      password, // ❗ En producción usar hash
+      password, // ⚠️ En producción usar hash con bcrypt
     },
   })
 
@@ -16,7 +15,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 })
   }
 
-  // Crear cookie personalizada
+  // Crear objeto de sesión
   const sessionData = {
     id: user.id,
     name: user.name,
@@ -30,7 +29,7 @@ export async function POST(req: Request) {
 
   response.headers.set(
     "Set-Cookie",
-    `reservas_session=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax`
+    `reservas_session=${cookieValue}; Path=/; Secure; SameSite=Lax`
   )
 
   return response
