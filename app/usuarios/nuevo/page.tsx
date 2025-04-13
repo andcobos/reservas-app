@@ -27,7 +27,7 @@ export default function NuevoUsuario() {
     })
 
     if (res.ok) {
-      setMensaje('✅ Usuario creado correctamente')
+      setMensaje('Usuario creado correctamente')
       setFormData({ name: '', email: '', password: '', role: 'CLIENTE' })
     } else {
       const data = await res.json()
@@ -83,6 +83,13 @@ export default function NuevoUsuario() {
       </form>
 
       {mensaje && <p className="mt-4 text-sm">{mensaje}</p>}
+
+      <p className="mt-4 text-sm text-center">
+        ¿Ya tienes una cuenta?{' '}
+        <a href="/iniciar_sesion" className="text-blue-600 hover:underline">
+          Inicia sesión
+        </a>
+      </p>
     </div>
   )
 }
