@@ -34,7 +34,10 @@ export default function IniciarSesion() {
 
       if (!res.ok) throw new Error(data.error || 'Credenciales incorrectas')
 
-      // Aquí redirigirías al dashboard o similar
+      // ✅ Simular login en UI
+      localStorage.setItem('loggedIn', 'true')
+
+      // ✅ Redirigir a la ruta protegida
       router.push('/usuarios')
     } catch (err: any) {
       setError(err.message)

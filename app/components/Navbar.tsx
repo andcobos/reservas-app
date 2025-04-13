@@ -14,10 +14,10 @@ export default function Navbar() {
     setUsuarioActivo(loggedIn === 'true')
   }, [])
 
-  const cerrarSesion = () => {
-    localStorage.removeItem('loggedIn') // limpiamos el estado
-    setUsuarioActivo(false)
-    router.push('/iniciar-sesion') // redirige
+  const cerrarSesion = async () => {
+    await fetch('/api/logout', { method: 'POST' }) 
+    localStorage.removeItem('loggedIn')            
+    router.push('/iniciar_sesion')                 
   }
 
   return (
@@ -45,7 +45,7 @@ export default function Navbar() {
             </>
           ) : (
             <li>
-              <button onClick={cerrarSesion} className="hover:underline">Cerrar sesión</button>
+              <button onClick={cerrarSesion}>Cerrar sesión</button>
             </li>
           )}
         </ul>
